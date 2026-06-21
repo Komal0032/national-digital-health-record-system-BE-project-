@@ -1,135 +1,150 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Blockchain Health Record System</title>
-    <meta
-      name="description"
-      content="Blockchain-based QR code health record management system"
-    />
-    <meta
-      name="keywords"
-      content="Blockchain, QR Code, Patient, Doctor, Health Records"
-    />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCare — Blockchain Health Records</title>
+  <meta name="description" content="Blockchain-based QR code health record management system" />
+  <meta name="keywords" content="Blockchain, QR Code, Patient, Doctor, Health Records" />
 
-    <link
-      href="{% static 'assets/img/apple-touch-icon.png' %}"
-      rel="apple-touch-icon"
-    />
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Raleway:wght@400;500;600;700&family=Ubuntu:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet" />
 
-    <!-- Vendor CSS Files -->
-    <link
-      href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}"
-      rel="stylesheet"
-    />
-    <link
-      href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}"
-      rel="stylesheet"
-    />
-    <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet" />
-    <link
-      href="{% static 'assets/vendor/glightbox/css/glightbox.min.css' %}"
-      rel="stylesheet"
-    />
-    <link
-      href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}"
-      rel="stylesheet"
-    />
+  <!-- AOS -->
+  <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet" />
 
-    <!-- Main CSS File -->
-    <link href="{% static 'assets/css/main.css' %}" rel="stylesheet" />
-  </head>
+  <!-- SweetAlert -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
 
-  <body class="index-page">
-    <header id="header" class="header d-flex align-items-center sticky-top">
-      <div
-        class="container-fluid container-xl position-relative d-flex align-items-center"
-      >
-        <a href="{% url 'index' %}" class="logo d-flex align-items-center me-auto">
-          <h1 class="sitename">
-            Blockchain <span style="color: #10bc69">Health</span> Records
-          </h1>
-        </a>
+  <!-- Landing CSS -->
+  <link href="{% static 'assets/css/landing.css' %}" rel="stylesheet" />
+</head>
 
-        <nav id="navmenu" class="navmenu">
-          <ul>
-            {% if user.is_authenticated %}
-              <li><a href="{% url 'log_out' %}">Logout</a></li>
-            {% else %}
-              <li class="dropdown">
-                <a href="#">
-                  <span>Registration</span>
-                  <i class="bi bi-chevron-down toggle-dropdown"></i>
-                </a>
-                <ul>
-                  <li><a href="{% url 'patient_password_create' %}">Patient Registration</a></li>
-                  <li><a href="{% url 'doctor_password_create' %}">Doctor Registration</a></li>
-                </ul>
-              </li>
+<body>
 
-              <li class="dropdown">
-                <a href="#">
-                  <span>Login</span>
-                  <i class="bi bi-chevron-down toggle-dropdown"></i>
-                </a>
-                <ul>
-                  <li><a href="{% url 'log_in' %}">Login</a></li>
-                  <li><a href="{% url 'admin_login' %}">Admin Login</a></li>
-                </ul>
-              </li>
-            {% endif %}
-          </ul>
-          <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-        </nav>
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <header id="main-header">
+    <div class="nav-container">
+      <a href="{% url 'index' %}" class="nav-brand">
+        <div class="brand-icon-wrap"><i class="bi bi-heart-pulse-fill"></i></div>
+        <span class="brand-name">Medi<span class="brand-accent">Care</span></span>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#hero"     class="nav-link-item">Home</a>
+        <a href="#about"    class="nav-link-item">About</a>
+        <a href="#features" class="nav-link-item">Features</a>
+        <a href="#how"      class="nav-link-item">How It Works</a>
+        <a href="#roles"    class="nav-link-item">Roles</a>
+      </nav>
+
+      <div class="nav-actions">
+        {% if user.is_authenticated %}
+          <a href="{% url 'log_out' %}" class="btn-nav-outline">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </a>
+        {% else %}
+          <div class="dropdown">
+            <button class="btn-nav-outline dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-plus"></i> Register
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end nav-dropdown">
+              <li><a class="dropdown-item" href="{% url 'patient_password_create' %}"><i class="bi bi-person-heart"></i> Patient Registration</a></li>
+              <li><a class="dropdown-item" href="{% url 'doctor_password_create' %}"><i class="bi bi-person-badge"></i> Doctor Registration</a></li>
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn-nav-filled dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end nav-dropdown">
+              <li><a class="dropdown-item" href="{% url 'log_in' %}"><i class="bi bi-person-fill"></i> Patient / Doctor Login</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_login' %}"><i class="bi bi-shield-lock-fill"></i> Admin Login</a></li>
+            </ul>
+          </div>
+        {% endif %}
       </div>
-    </header>
 
-    {% for message in messages %}
-      <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-      {% if message.tags == 'success' %}
-        <script> swal("{{ message }}", "", "success"); </script>
-      {% elif message.tags == 'danger' %}
-        <script> swal("{{ message }}", "", "error"); </script>
-      {% elif message.tags == 'info' %}
-        <script> swal("{{ message }}", ""); </script>
+      <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()">
+        <i class="bi bi-list" id="mobileIcon"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Nav -->
+    <div class="mobile-nav" id="mobileNav">
+      <a href="#hero"     class="mobile-nav-link" onclick="closeMobileNav()">Home</a>
+      <a href="#about"    class="mobile-nav-link" onclick="closeMobileNav()">About</a>
+      <a href="#features" class="mobile-nav-link" onclick="closeMobileNav()">Features</a>
+      <a href="#how"      class="mobile-nav-link" onclick="closeMobileNav()">How It Works</a>
+      <a href="#roles"    class="mobile-nav-link" onclick="closeMobileNav()">Roles</a>
+      <div class="mobile-nav-divider"></div>
+      {% if user.is_authenticated %}
+        <a href="{% url 'log_out' %}" class="mobile-nav-link">Logout</a>
+      {% else %}
+        <a href="{% url 'patient_password_create' %}" class="mobile-nav-link">Patient Register</a>
+        <a href="{% url 'doctor_password_create' %}" class="mobile-nav-link">Doctor Register</a>
+        <a href="{% url 'log_in' %}" class="mobile-nav-link">Login</a>
+        <a href="{% url 'admin_login' %}" class="mobile-nav-link">Admin Login</a>
       {% endif %}
-    {% endfor %}
+    </div>
+  </header>
 
-    {% block body %}{% endblock body %}
+  <!-- ══ MESSAGES ══ -->
+  {% if messages %}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  {% for message in messages %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      Swal.fire({
+        title: "{{ message|escapejs }}",
+        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' or message.tags == 'danger' %}error{% else %}info{% endif %}",
+        confirmButtonColor: "#0cb76b",
+        confirmButtonText: "OK"
+      });
+    });
+  </script>
+  {% endfor %}
+  {% endif %}
 
-    <!-- Scroll Top -->
-    <a
-      href="#"
-      id="scroll-top"
-      class="scroll-top d-flex align-items-center justify-content-center"
-    >
-      <i class="bi bi-arrow-up-short"></i>
-    </a>
+  <!-- ══ PAGE CONTENT ══ -->
+  {% block body %}{% endblock body %}
 
-    <!-- Preloader -->
-    <div id="preloader"></div>
+  <!-- ══ FOOTER ══ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="brand-icon-wrap small"><i class="bi bi-heart-pulse-fill"></i></div>
+        <span class="brand-name">Medi<span class="brand-accent">Care</span></span>
+      </div>
+      <p class="footer-tagline">Blockchain-secured health records for a trusted future in healthcare.</p>
+      <div class="footer-links">
+        <a href="#hero">Home</a>
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="{% url 'log_in' %}">Login</a>
+        <a href="{% url 'admin_login' %}">Admin</a>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2025 MediCare Blockchain Health Records. All rights reserved.
+      </div>
+    </div>
+  </footer>
 
-    <!-- Vendor JS Files -->
-    <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
-    <script src="{% static 'assets/vendor/aos/aos.js' %}"></script>
-    <script src="{% static 'assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/purecounter/purecounter_vanilla.js' %}"></script>
-    <script src="{% static 'assets/vendor/imagesloaded/imagesloaded.pkgd.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
-    <script src="{% static 'assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top-btn">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
 
-    <!-- Main JS File -->
-    <script src="{% static 'assets/js/main.js' %}"></script>
-  </body>
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'assets/vendor/aos/aos.js' %}"></script>
+  <script src="{% static 'assets/js/landing.js' %}"></script>
+</body>
 </html>

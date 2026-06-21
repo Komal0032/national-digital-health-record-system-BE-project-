@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from .models import Patient, Doctor, Appointment, DoctorRequest
-
+from django.utils import timezone
 # 🧩 Added imports for Blockchain + QR logic
 import qrcode
 import json
@@ -17,7 +17,7 @@ import hashlib
 from web3 import Web3
 
 # ✅ Connect to Ganache
-ganache_url = "http://127.0.0.1:7545"
+ganache_url = "HTTP://127.0.0.1:7545"
 web3 = Web3(Web3.HTTPProvider(ganache_url))
 
 # --------------------------------------
@@ -142,8 +142,9 @@ def patient_register(request):
 
             # 4️⃣ Prepare QR data (with final hash + history)
             qr_data = {
-                "final_blockchain_hash": blockchain_hash,
-                "full_history": initial_record
+                "patient_id": patient.id,
+                "blockchain_hash": blockchain_hash,
+                "url": f"http://127.0.0.1:8000/patient-record/{patient.id}/"
             }
 
             # 5️⃣ Generate and save QR Code
@@ -223,7 +224,7 @@ def log_in(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
-        # 🩺 Check if email exists in Patient table
+        # Check if email exists in Patient table
         try:
             patient = Patient.objects.get(email=email)
             if not patient.is_password_set:
@@ -241,7 +242,7 @@ def log_in(request):
         except Patient.DoesNotExist:
             pass  # If not found, move on to check Doctor
 
-        # 👨‍⚕️ Check if email exists in Doctor table
+        #  Check if email exists in Doctor table
         try:
             doctor = Doctor.objects.get(email=email)
             if not doctor.is_password_set:
@@ -259,7 +260,7 @@ def log_in(request):
         except Doctor.DoesNotExist:
             pass
 
-        # ❌ If no record found
+        #  If no record found
         messages.error(request, "No account found with this email.")
         return redirect("log_in")
 
@@ -290,17 +291,41 @@ def admin_login(request):
             return redirect("admin_login")
 
     return render(request, "admin_login.html")
-
+from django.db.models import Count
 
 def admin_dashboard(request):
     context = {
+        # ================= MAIN DATA =================
         'all_patients': Patient.objects.all().order_by('-created_at'),
         'all_doctors': Doctor.objects.all().order_by('-created_at'),
-        'all_appointments': Appointment.objects.all().order_by('-date'),
+
+        # Appointments (safe ordering)
+        'all_appointments': Appointment.objects.all().order_by('-created_at'),
+
+        # Doctor Requests (optimized)
+        'all_requests': DoctorRequest.objects.select_related('patient', 'doctor').order_by('-created_at'),
+
+        # ================= COUNTS =================
         'total_patients': Patient.objects.count(),
         'total_doctors': Doctor.objects.count(),
         'total_appointments': Appointment.objects.count(),
+        'total_requests': DoctorRequest.objects.count(),
+
+        # 🔥 REPORT COUNTS
+        'accepted_requests': DoctorRequest.objects.filter(status="Accepted").count(),
+        'pending_requests': DoctorRequest.objects.filter(status="Pending").count(),
+
+        # ================= ANALYTICS =================
+        # Top doctors (based on number of requests)
+        'top_doctors': DoctorRequest.objects.values('doctor__full_name')
+            .annotate(total=Count('id'))
+            .order_by('-total')[:5],
+
+        # Recent activity (last 5 requests, optimized)
+        'recent_requests': DoctorRequest.objects.select_related('patient', 'doctor')
+            .order_by('-created_at')[:5],
     }
+
     return render(request, 'admin_dashboard.html', context)
 
 def edit_patient(request, patient_id):
@@ -365,8 +390,8 @@ def edit_patient(request, patient_id):
             txn = contract.functions.addRecord(patient.id, new_hash).build_transaction({
                 'from': account_address,
                 'nonce': nonce,
-                'gas': 2000000,
-                'gasPrice': web3.to_wei('50', 'gwei')
+                'gas': 200000,
+                'gasPrice': web3.to_wei('1', 'gwei')
             })
 
             signed_txn = web3.eth.account.sign_transaction(txn, private_key=private_key)
@@ -382,9 +407,9 @@ def edit_patient(request, patient_id):
 
         # 6️⃣ Generate updated QR Code
         qr_data = {
-            "final_blockchain_hash": new_hash,
-            "blockchain_tx_hash": blockchain_tx_hash,
-            "full_history": history_records
+            "patient_id": patient.id,
+            "blockchain_hash": new_hash,
+            "url": f"http://127.0.0.1:8000/patient-record/{patient.id}/"
         }
         qr = qrcode.make(json.dumps(qr_data, indent=2))
 
@@ -553,39 +578,38 @@ def doctor_password_create(request):
     return render(request, "doctor_password_create.html", {"verified": verified})
 
 def patient_dashboard(request):
-    """Patient Dashboard with QR, history, visits, notifications"""
     user_id = request.session.get("user_id")
     if request.session.get("user_role") != "patient" or not user_id:
         messages.error(request, "Unauthorized access.")
         return redirect("log_in")
 
-    # Fetch patient
     patient = get_object_or_404(Patient, id=user_id)
-
-    # All doctors (for request section)
     doctors = Doctor.objects.all()
+    appointments = Appointment.objects.filter(patient=patient).order_by('-date', '-time')
+    doctor_requests = DoctorRequest.objects.filter(patient=patient).select_related('doctor').order_by('-created_at')
 
-    # Last visit doctor saved
-    latest_visit = patient.visits.order_by('-created_at').first()
-
-    # Top 3 recent visits
-    visits = patient.visits.order_by('-created_at')[:3]
-
-    # Last 3 patient history entries
-    history_records = patient.history_records.order_by('-updated_at')[:3]
-
-    # Unread notifications (top 10)
-    notifications = patient.notifications.filter(read=False).order_by('-created_at')[:10]
+    # Build a quick lookup: doctor_id -> latest request status
+    request_status_map = {}
+    for req in doctor_requests:
+        if req.doctor_id not in request_status_map:
+            request_status_map[req.doctor_id] = req.status
 
     context = {
         "patient": patient,
         "doctors": doctors,
-        "latest_visit": latest_visit,
-        "visits": visits,
-        "history_records": history_records,
-        "notifications": notifications,
+        "appointments": appointments,
+        "doctor_requests": doctor_requests,
+        "request_status_map": request_status_map,
+        "total_requests": doctor_requests.count(),
+        "accepted_count": doctor_requests.filter(status="Accepted").count(),
+        "pending_count": doctor_requests.filter(status="Pending").count(),
+        "rejected_count": doctor_requests.filter(status="Rejected").count(),
+        "latest_visit": patient.visits.order_by('-created_at').first(),
+        "visits": patient.visits.order_by('-created_at')[:3],
+        "all_visits": patient.visits.select_related('doctor').order_by('-created_at'),
+        "history_records": patient.history_records.order_by('-updated_at'),
+        "notifications": patient.notifications.filter(read=False).order_by('-created_at')[:10],
     }
-
     return render(request, "patient_dashboard.html", context)
 
 from django.db.models import Max
@@ -683,52 +707,10 @@ def save_patient_record(request):
     )
 
     # --------------------------------------------------
-    # 3️⃣ FETCH PREVIOUS VISITS (EXCLUDING CURRENT)
-    # --------------------------------------------------
-    previous_visits = list(
-        patient.visits.exclude(id=visit.id).order_by("-created_at")
-    )
-
-    # --------------------------------------------------
-    # 4️⃣ BUILD last_two_history (ONLY PREVIOUS DATA)
-    # --------------------------------------------------
-    last_two_history = []
-
-    for v in previous_visits[:2]:  # max 2 previous records
-        last_two_history.append({
-            "type": "doctor_update",
-            "visit_date": str(v.visit_date),
-            "follow_up_date": str(v.follow_up_date),
-            "symptoms": v.symptoms,
-            "diagnosis": v.diagnosis,
-            "tests": v.tests,
-            "prescription": v.prescription,
-            "notes": v.notes,
-            "doctor": v.doctor.full_name,
-            "created_at": str(v.created_at)
-        })
-
-    # --------------------------------------------------
-    # 5️⃣ LATEST RECORD (CURRENT VISIT ONLY)
-    # --------------------------------------------------
-    latest_record = {
-        "visit_date": str(visit.visit_date),
-        "follow_up_date": str(visit.follow_up_date),
-        "symptoms": visit.symptoms,
-        "diagnosis": visit.diagnosis,
-        "tests": visit.tests,
-        "prescription": visit.prescription,
-        "notes": visit.notes,
-        "doctor": doctor.full_name,
-        "created_at": str(visit.created_at)
-    }
-
-    # --------------------------------------------------
-    # 6️⃣ BUILD FULL HISTORY FOR BLOCKCHAIN HASH
+    # 3️⃣ BUILD FULL HISTORY FOR BLOCKCHAIN HASH
     # --------------------------------------------------
     full_history = []
 
-    # Patient history snapshots
     for h in patient.history_records.all().order_by("updated_at"):
         full_history.append({
             "full_name": h.full_name,
@@ -742,7 +724,6 @@ def save_patient_record(request):
             "updated_at": str(h.updated_at)
         })
 
-    # All visits including current
     for v in patient.visits.all().order_by("created_at"):
         full_history.append({
             "visit_date": str(v.visit_date),
@@ -756,7 +737,6 @@ def save_patient_record(request):
             "created_at": str(v.created_at)
         })
 
-    # Final patient snapshot
     full_history.append({
         "patient_id": patient.id,
         "full_name": patient.full_name,
@@ -771,11 +751,10 @@ def save_patient_record(request):
 
     chain_json = json.dumps(full_history, sort_keys=True)
     new_hash = hashlib.sha256(chain_json.encode()).hexdigest()
-
     patient.blockchain_hash = new_hash
 
     # --------------------------------------------------
-    # 7️⃣ WRITE HASH TO BLOCKCHAIN
+    # 4️⃣ WRITE HASH TO BLOCKCHAIN
     # --------------------------------------------------
     try:
         nonce = web3.eth.get_transaction_count(account_address)
@@ -785,7 +764,6 @@ def save_patient_record(request):
             "gas": 2000000,
             "gasPrice": web3.to_wei("50", "gwei")
         })
-
         signed = web3.eth.account.sign_transaction(txn, private_key)
         tx_hash = web3.eth.send_raw_transaction(signed.raw_transaction).hex()
     except Exception as e:
@@ -794,29 +772,18 @@ def save_patient_record(request):
     patient.tx_hash = tx_hash
 
     # --------------------------------------------------
-    # 8️⃣ BUILD QR DATA (NO DUPLICATION GUARANTEED)
+    # 5️⃣ BUILD QR DATA — only ID + hash + URL (no data limit issue)
     # --------------------------------------------------
     qr_data = {
-        "full_name": patient.full_name,
-        "age": patient.age,
-        "gender": patient.gender,
-        "email": patient.email,
-        "phone": patient.phone,
-        "address": patient.address,
-        "disease": patient.disease,
-        "doctor_assigned": doctor.full_name,
-
+        "patient_id": patient.id,
         "blockchain_hash": new_hash,
-        "blockchain_tx_hash": tx_hash,
-
-        "latest_record": latest_record,
-        "last_two_history": last_two_history
+        "url": f"http://127.0.0.1:8000/patient-record/{patient.id}/"
     }
 
-    qr_json = json.dumps(qr_data, indent=2)
+    qr_json = json.dumps(qr_data)
 
     # --------------------------------------------------
-    # 9️⃣ GENERATE QR CODE
+    # 6️⃣ GENERATE QR CODE
     # --------------------------------------------------
     qr = qrcode.QRCode(
         version=None,
@@ -848,6 +815,38 @@ def save_patient_record(request):
     messages.success(request, "✔ Patient record saved and QR updated!")
     return redirect("doctor_dashboard")
 
+def patient_record_public(request, patient_id):
+    patient = get_object_or_404(Patient, id=patient_id)
+    visits = patient.visits.select_related('doctor').order_by('-created_at')
+    history = patient.history_records.order_by('-updated_at')
+
+    # Verify blockchain hash
+    scanned_hash = request.GET.get('hash', None)
+    hash_verified = False
+    if scanned_hash and scanned_hash == patient.blockchain_hash:
+        hash_verified = True
+
+    # Verify against blockchain contract, fallback to DB hash check
+    chain_verified = False
+    try:
+        records = contract.functions.getRecords(patient.id).call()
+        if records:
+            latest_chain_hash = records[-1][1]
+            chain_verified = (latest_chain_hash == patient.blockchain_hash)
+        else:
+            chain_verified = bool(patient.blockchain_hash)
+    except:
+        # Ganache offline — fallback to DB hash
+        chain_verified = bool(patient.blockchain_hash)
+
+    context = {
+        "patient": patient,
+        "visits": visits,
+        "history": history,
+        "hash_verified": hash_verified,
+        "chain_verified": chain_verified,
+    }
+    return render(request, "patient_record_public.html", context)
 
 
 from django.shortcuts import get_object_or_404, redirect
@@ -952,8 +951,19 @@ from .models import DoctorRequest, Patient
 
 def accept_request(request, request_id):
     req = DoctorRequest.objects.get(id=request_id)
+
     req.status = "Accepted"
     req.save()
+
+    # 🔥 CREATE APPOINTMENT HERE
+    Appointment.objects.create(
+        patient=req.patient,
+        doctor=req.doctor,
+        date=timezone.now().date(),  # or custom date
+        time=timezone.now().time(),
+        status="Scheduled"
+    )
+
     return redirect('doctor_dashboard')
 
 def reject_request(request, request_id):
@@ -966,12 +976,19 @@ def patient_info(request, patient_id):
     patient = Patient.objects.get(id=patient_id)
     return render(request, "patient_info.html", {
         "patient": patient,
-        "blockchain_hash": patient.blockchain_hash  # ✅ send hash to HTML
+        "blockchain_hash": patient.blockchain_hash,
+        "security_features": [
+            "Immutable record keeping — data cannot be altered",
+            "Transparent audit trail for every update",
+            "Cryptographic SHA-256 verification",
+            "Prevents unauthorized changes",
+            "Decentralized storage",
+            "Full patient data ownership",
+        ]
     })
 from .models import DoctorRequest
 
 def send_request_to_doctor(request, doctor_id):
-    """Patient sends a request to doctor"""
     if request.session.get("user_role") != "patient":
         messages.error(request, "Unauthorized access.")
         return redirect("log_in")
@@ -980,25 +997,32 @@ def send_request_to_doctor(request, doctor_id):
     patient = get_object_or_404(Patient, id=patient_id)
     doctor = get_object_or_404(Doctor, id=doctor_id)
 
-    # Check if already sent
-    existing = DoctorRequest.objects.filter(
-        patient=patient,
-        doctor=doctor,
-        status="Pending"
-    ).first()
+    latest = DoctorRequest.objects.filter(patient=patient, doctor=doctor).order_by('-created_at').first()
 
-    if existing:
-        messages.warning(request, "Request already sent to this doctor.")
-        return redirect("patient_dashboard")
+    if latest:
+        if latest.status == "Pending":
+            messages.warning(request, "Request already pending.")
+            return redirect("patient_dashboard")
+        # Accepted or Rejected → allow new request (fall through)
 
-    # Create new request
-    DoctorRequest.objects.create(
-        patient=patient,
-        doctor=doctor,
-        status="Pending"
-    )
-
+    DoctorRequest.objects.create(patient=patient, doctor=doctor, status="Pending")
     messages.success(request, f"Request sent to Dr. {doctor.full_name}")
+    return redirect("patient_dashboard")
+
+def cancel_request(request, request_id):
+    if request.session.get("user_role") != "patient":
+        messages.error(request, "Unauthorized access.")
+        return redirect("log_in")
+
+    patient_id = request.session.get("user_id")
+    req = get_object_or_404(DoctorRequest, id=request_id, patient__id=patient_id)
+
+    if req.status == "Pending":  # only cancel if still pending
+        req.delete()
+        messages.success(request, "Request cancelled successfully.")
+    else:
+        messages.warning(request, "Cannot cancel an accepted or rejected request.")
+
     return redirect("patient_dashboard")
 
 

@@ -32,7 +32,7 @@ class Patient(models.Model):
     def __str__(self):
         return self.full_name
 
-    # 🧠 Password handling
+    #  Password handling
     def set_password(self, raw_password):
         """Hashes and stores the password."""
         self.password = make_password(raw_password)
@@ -52,7 +52,7 @@ class Doctor(models.Model):
     experience = models.IntegerField(help_text="Experience in years")
     photo = models.ImageField(upload_to='doctors/', blank=True, null=True)
     
-    # 🧩 NEW FIELD — Password for doctor login
+    #  NEW FIELD — Password for doctor login
     password = models.CharField(max_length=128, blank=True, null=True)
     is_password_set = models.BooleanField(default=False)
 
@@ -61,7 +61,7 @@ class Doctor(models.Model):
     def __str__(self):
         return self.full_name
 
-    # 🧠 Password handling
+    #  Password handling
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
         self.is_password_set = True

@@ -30,6 +30,7 @@ urlpatterns = [
     path('edit_patient/<int:patient_id>/', views.edit_patient, name='edit_patient'),
     path('delete_patient/<int:patient_id>/', views.delete_patient, name='delete_patient'),
     path('patient_history/<int:patient_id>/', views.patient_history, name='patient_history'),
+    path('patient-record/<int:patient_id>/', views.patient_record_public, name='patient_record_public'),
 
     # ✅ Doctor CRUD
     path('edit_doctor/<int:doctor_id>/', views.edit_doctor, name='edit_doctor'),
@@ -38,6 +39,7 @@ urlpatterns = [
     # ✅ Appointments
     path('approve_appointment/<int:appointment_id>/', views.approve_appointment, name='approve_appointment'),
     path('reject_appointment/<int:appointment_id>/', views.reject_appointment, name='reject_appointment'),
+    path('cancel-request/<int:request_id>/', views.cancel_request, name='cancel_request'),
 
     # ✅ Doctor Request System
     path('send-request/<int:doctor_id>/', views.send_request_to_doctor, name='send_request_to_doctor'),

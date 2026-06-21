@@ -1,1395 +1,990 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MediCare - Admin Dashboard</title>
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- Bootstrap Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
-    />
-    <!-- SweetAlert CSS -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
-    />
-    <style>
-      :root {
-        --primary-color: #0cb76b;
-        --primary-dark: #09995a;
-        --secondary-color: #2c3e50;
-        --light-bg: #f8f9fa;
-        --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-      }
-
-      body {
-        background-color: var(--light-bg);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      }
-
-      .sidebar {
-        min-height: 100vh;
-        background: linear-gradient(
-          180deg,
-          var(--primary-color),
-          var(--primary-dark)
-        );
-        color: white;
-        padding-top: 1rem;
-        box-shadow: 3px 0 15px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-      }
-
-      .sidebar .brand {
-        padding: 1.5rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 1rem;
-      }
-
-      .sidebar .brand h4 {
-        font-weight: 700;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .sidebar .nav-item {
-        margin-bottom: 0.5rem;
-      }
-
-      .sidebar .nav-link {
-        color: white;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        margin: 0 0.5rem;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .sidebar .nav-link:hover,
-      .sidebar .nav-link.active {
-        background: rgba(255, 255, 255, 0.15);
-        border-left: 4px solid #fff;
-      }
-
-      .sidebar .nav-link i {
-        font-size: 1.1rem;
-        width: 24px;
-        text-align: center;
-      }
-
-      .content-section {
-        display: none;
-        animation: fadeIn 0.5s ease;
-      }
-
-      .content-section.active {
-        display: block;
-      }
-
-      .page-header {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--card-shadow);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .stats-card {
-        background: white;
-        color: var(--secondary-color);
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: var(--card-shadow);
-        transition: transform 0.3s, box-shadow 0.3s;
-        border-left: 4px solid var(--primary-color);
-        height: 100%;
-      }
-
-      .stats-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--hover-shadow);
-      }
-
-      .stats-card .card-icon {
-        font-size: 2.5rem;
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-      }
-
-      .stats-card h3 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-      }
-
-      .stats-card h2 {
-        font-size: 2rem;
-        font-weight: 700;
-        margin: 0;
-      }
-
-      .card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: var(--card-shadow);
-        transition: transform 0.3s, box-shadow 0.3s;
-        margin-bottom: 1.5rem;
-      }
-
-      .card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--hover-shadow);
-      }
-
-      .card-header {
-        font-weight: 600;
-        font-size: 1.1rem;
-        background: white;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        padding: 1rem 1.5rem;
-        border-radius: 12px 12px 0 0 !important;
-      }
-
-      .table-responsive {
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: var(--card-shadow);
-      }
-
-      .table thead {
-        background: linear-gradient(
-          45deg,
-          var(--primary-color),
-          var(--primary-dark)
-        );
-        color: white;
-      }
-
-      .table th {
-        border: none;
-        padding: 1rem;
-        font-weight: 600;
-      }
-
-      .table td {
-        padding: 1rem;
-        vertical-align: middle;
-      }
-
-      .table tbody tr {
-        transition: background-color 0.2s;
-      }
-
-      .table tbody tr:hover {
-        background-color: rgba(12, 183, 107, 0.05);
-      }
-
-      .btn {
-        border-radius: 8px;
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        transition: all 0.3s;
-      }
-
-      .btn-primary {
-        background: var(--primary-color);
-        border: none;
-      }
-
-      .btn-primary:hover {
-        background: var(--primary-dark);
-        transform: translateY(-2px);
-      }
-
-      .btn-success {
-        background: var(--primary-color);
-        border: none;
-      }
-
-      .btn-success:hover {
-        background: var(--primary-dark);
-        transform: translateY(-2px);
-      }
-
-      .form-control,
-      .form-select {
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        border: 1px solid #e0e0e0;
-        transition: all 0.3s;
-      }
-
-      .form-control:focus,
-      .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.25rem rgba(12, 183, 107, 0.25);
-      }
-
-      .action-buttons .btn {
-        padding: 0.25rem 0.75rem;
-        margin: 0 2px;
-      }
-
-      .badge {
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-weight: 500;
-      }
-
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-
-      .mobile-menu-btn {
-        background: var(--primary-color);
-        border: none;
-        border-radius: 8px;
-        padding: 0.5rem 1rem;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 1rem;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Responsive adjustments */
-      @media (max-width: 768px) {
-        .sidebar {
-          position: fixed;
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-        }
-
-        .sidebar.show {
-          transform: translateX(0);
-        }
-
-        .stats-card h2 {
-          font-size: 1.5rem;
-        }
-
-        .page-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 1rem;
-        }
-
-        /* Mobile form improvements */
-        .form-card {
-          margin: 0 -1rem;
-          border-radius: 0;
-        }
-
-        .form-card .card-body {
-          padding: 1rem;
-        }
-
-        /* Mobile table improvements */
-        .mobile-table-container {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .mobile-table {
-          min-width: 800px;
-        }
-
-        /* Mobile action buttons */
-        .mobile-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.25rem;
-        }
-
-        .mobile-actions .btn {
-          flex: 1;
-          min-width: 60px;
-          padding: 0.4rem 0.5rem;
-          font-size: 0.8rem;
-        }
-
-        /* Mobile card header improvements */
-        .mobile-card-header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 1rem;
-        }
-
-        .mobile-card-header .d-flex {
-          width: 100%;
-        }
-
-        .mobile-card-header .d-flex input {
-          flex: 1;
-        }
-
-        /* QR code mobile adjustments */
-        .mobile-qr {
-          max-width: 60px;
-          height: auto;
-        }
-      }
-
-      /* Message alerts */
-      .alert-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 300px;
-      }
-      /* ---------- DASHBOARD RESPONSIVE FIX PATCH ---------- */
-
-      @media (max-width: 991px) {
-        /* Fix card layout spacing */
-        .stats-card {
-          text-align: center;
-          padding: 1.25rem;
-        }
-
-        .stats-card .card-icon {
-          margin: 0 auto 0.75rem auto;
-        }
-
-        /* Page header on small screens */
-        .page-header {
-          flex-direction: column;
-          align-items: flex-start;
-          text-align: center;
-          gap: 0.75rem;
-        }
-
-        .page-header .d-flex {
-          width: 100%;
-          justify-content: center;
-        }
-
-        /* Recent Patients/Doctors cards */
-        .card {
-          margin-bottom: 1.2rem;
-        }
-
-        .card-header {
-          flex-direction: column;
-          text-align: center;
-          gap: 0.5rem;
-        }
-
-        .card-header .btn {
-          width: 100%;
-        }
-
-        .card-body {
-          padding: 0.75rem 0.75rem 1rem;
-        }
-
-        /* Tables scroll horizontally instead of shrinking */
-        .table-responsive,
-        .mobile-table-container {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .table {
-          min-width: 650px;
-        }
-
-        /* Avatar and text alignment inside table */
-        .user-avatar {
-          width: 35px;
-          height: 35px;
-        }
-
-        .table td,
-        .table th {
-          font-size: 0.9rem;
-          white-space: nowrap;
-        }
-
-        /* Badge spacing */
-        .badge {
-          font-size: 0.8rem;
-          padding: 0.35rem 0.6rem;
-        }
-
-        /* Make everything slightly compact */
-        h2,
-        h3,
-        h5 {
-          font-size: 1rem;
-        }
-
-        p,
-        span {
-          font-size: 0.9rem;
-        }
-      }
-
-      @media (max-width: 575px) {
-        /* Super compact for phones under 576px */
-        .stats-card {
-          padding: 1rem;
-          margin-bottom: 0.8rem;
-        }
-
-        .card-header h5 {
-          font-size: 1rem;
-        }
-
-        .table {
-          min-width: 550px;
-        }
-
-        .btn-sm {
-          font-size: 0.85rem;
-          padding: 0.35rem 0.75rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Messages Display -->
-    {% if messages %}
-    <div class="alert-container">
-      {% for message in messages %}
-      <div
-        class="alert alert-{{ message.tags }} alert-dismissible fade show"
-        role="alert"
-      >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-        ></button>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediCare - Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="{% static 'assets/css/medicare_common.css' %}">
+  <style>
+    /* ===== ADMIN-SPECIFIC: Action buttons for table rows ===== */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1.5px solid #e0e7ef;
+      background: white;
+      color: #4a5568;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      margin: 1px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .action-btn.edit:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .action-btn.delete:hover {
+      border-color: #d03030;
+      color: #d03030;
+      background: #fff0f0;
+    }
+
+    .action-btn.view:hover {
+      border-color: #2b5ce6;
+      color: #2b5ce6;
+      background: #e8f0fe;
+    }
+
+    .action-btn.approve:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .action-btn.reject:hover {
+      border-color: #d03030;
+      color: #d03030;
+      background: #fff0f0;
+    }
+
+    /* ===== ADMIN-SPECIFIC: Search input with icon ===== */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8896a5;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      padding-left: 2.2rem;
+    }
+
+    /* ===== ADMIN-SPECIFIC: QR block in patients table ===== */
+    .qr-block {
+      text-align: center;
+    }
+
+    .qr-block img {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      border: 2px solid #e6f9f1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: var(--transition);
+    }
+
+    .qr-block img:hover {
+      transform: scale(1.06);
+    }
+
+    /* Reduce row height */
+    .data-table tbody td {
+      padding: 0.55rem 0.7rem;
+      font-size: 0.82rem;
+    }
+
+    /* Make avatar slightly smaller */
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebarMenu">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="bi bi-heart-pulse"></i></div>
+        <h5>MediCare Admin</h5>
+        <p>Healthcare Management</p>
       </div>
-      {% endfor %}
-    </div>
-    {% endif %}
 
-    <div class="container-fluid">
-      <div class="row">
-        <!-- 🌿 Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar" id="sidebarMenu">
-          <div class="brand">
-            <h4><i class="bi bi-heart-pulse"></i> MediCare Admin</h4>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <button class="sidebar-link active" onclick="showSection('home', this)">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </button>
+        <div class="nav-section-label">Management</div>
+        <button class="sidebar-link" onclick="showSection('register-patient', this)">
+          <i class="bi bi-person-plus"></i> Register Patient
+        </button>
+        <button class="sidebar-link" onclick="showSection('register-doctor', this)">
+          <i class="bi bi-person-badge"></i> Register Doctor
+        </button>
+        <button class="sidebar-link" onclick="showSection('patients', this)">
+          <i class="bi bi-people"></i> All Patients
+        </button>
+        <button class="sidebar-link" onclick="showSection('doctors', this)">
+          <i class="bi bi-person-badge"></i> All Doctors
+        </button>
+        <div class="nav-section-label">Operations</div>
+        <button class="sidebar-link" onclick="showSection('appointments', this)">
+          <i class="bi bi-calendar-check"></i> Appointments
+        </button>
+        <button class="sidebar-link" onclick="showSection('reports', this)">
+          <i class="bi bi-graph-up"></i> Reports
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-user mb-2">
+          <div class="avatar">A</div>
+          <div class="user-info">
+            <div class="user-name">Admin User</div>
+            <div class="user-role">Administrator</div>
           </div>
-          <div class="nav flex-column">
-            <a class="nav-link active" onclick="showSection('home')">
-              <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
-            <a class="nav-link" onclick="showSection('register-patient')">
-              <i class="bi bi-person-plus"></i> Register Patient
-            </a>
-            <a class="nav-link" onclick="showSection('register-doctor')">
-              <i class="bi bi-person-badge"></i> Register Doctor
-            </a>
-            <a class="nav-link" onclick="showSection('patients')">
-              <i class="bi bi-people"></i> All Patients
-            </a>
-            <a class="nav-link" onclick="showSection('doctors')">
-              <i class="bi bi-person-badge"></i> All Doctors
-            </a>
-            <a class="nav-link" onclick="showSection('appointments')">
-              <i class="bi bi-calendar-check"></i> Appointments
-            </a>
-            <a class="nav-link" onclick="showSection('reports')">
-              <i class="bi bi-graph-up"></i> Reports
-            </a>
-            <a class="nav-link text-danger" href="{% url 'log_out' %}">
-              <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
-          </div>
-        </nav>
+        </div>
+        <a href="{% url 'log_out' %}" class="sidebar-link text-danger-link" style="margin-bottom:0;">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+      </div>
+    </aside>
 
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-          <!-- Mobile Sidebar Toggle -->
-          <button
-            class="mobile-menu-btn d-md-none mb-3"
-            type="button"
-            onclick="toggleSidebar()"
-          >
-            <i class="bi bi-list"></i> Menu
-          </button>
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content" id="mainContent">
+      <div class="main-inner">
 
-          <!-- Dashboard Home -->
-          <div id="home" class="content-section active">
-            <!-- Page Header -->
-            <div class="page-header flex-wrap text-center text-md-start">
-              <h2 class="mb-2 mb-md-0">Dashboard Overview</h2>
-              <div
-                class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-end gap-2"
-              >
-                <span class="fw-semibold">Welcome, Admin</span>
-                <div class="dropdown">
-                  <button
-                    class="btn btn-outline-secondary dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                  >
-                    <i class="bi bi-person-circle me-2"></i> Admin User
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#"
-                        ><i class="bi bi-person me-2"></i> Profile</a
-                      >
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="#"
-                        ><i class="bi bi-gear me-2"></i> Settings</a
-                      >
-                    </li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li>
-                      <a
-                        class="dropdown-item text-danger"
-                        href="{% url 'log_out' %}"
-                        ><i class="bi bi-box-arrow-right me-2"></i> Logout</a
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+        <button class="mobile-toggle" onclick="toggleSidebar()">
+          <i class="bi bi-list"></i> Menu
+        </button>
 
-            <!-- Statistics Cards -->
-            <div class="row g-3 g-md-4 mb-4">
-              <div class="col-12 col-md-4">
-                <div class="stats-card text-center text-md-start">
-                  <div class="card-icon mx-auto mx-md-0">
-                    <i class="bi bi-people"></i>
-                  </div>
-                  <h3>Total Patients</h3>
-                  <h2>{{ total_patients }}</h2>
-                  <p class="text-muted mb-0">Registered patients</p>
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="stats-card text-center text-md-start">
-                  <div class="card-icon mx-auto mx-md-0">
-                    <i class="bi bi-person-badge"></i>
-                  </div>
-                  <h3>Total Doctors</h3>
-                  <h2>{{ total_doctors }}</h2>
-                  <p class="text-muted mb-0">Registered doctors</p>
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="stats-card text-center text-md-start">
-                  <div class="card-icon mx-auto mx-md-0">
-                    <i class="bi bi-calendar-check"></i>
-                  </div>
-                  <h3>Appointments</h3>
-                  <h2>{{ total_appointments }}</h2>
-                  <p class="text-muted mb-0">Total appointments</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recent Patients & Doctors -->
-            <div class="row g-3 g-md-4">
-              <!-- Recent Patients -->
-              <div class="col-12 col-lg-6">
-                <div class="card">
-                  <div
-                    class="card-header d-flex flex-wrap justify-content-between align-items-center"
-                  >
-                    <h5 class="mb-2 mb-md-0">Recent Patients</h5>
-                    <a
-                      href="#"
-                      class="btn btn-sm btn-outline-primary"
-                      onclick="showSection('patients')"
-                      >View All</a
-                    >
-                  </div>
-                  <div class="card-body">
-                    {% if all_patients %}
-                    <div class="mobile-table-container">
-                      <table class="table table-hover mb-0 mobile-table text-nowrap">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Age</th>
-                            <th>Condition</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for patient in all_patients|slice:":5" %}
-                          <tr>
-                            <td>
-                              <div class="d-flex align-items-center">
-                                <img
-                                  src="https://ui-avatars.com/api/?name={{ patient.full_name|urlencode }}&background=0cb76b&color=fff"
-                                  class="user-avatar me-2"
-                                  alt="Avatar"
-                                />
-                                <div>{{ patient.full_name }}</div>
-                              </div>
-                            </td>
-                            <td>{{ patient.age }}</td>
-                            <td>{{ patient.disease|default:"Not specified"|truncatewords:3 }}</td>
-                            <td><span class="badge bg-success">Active</span></td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    {% else %}
-                    <p class="text-center text-muted my-3">No patients found.</p>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recent Doctors -->
-              <div class="col-12 col-lg-6">
-                <div class="card">
-                  <div
-                    class="card-header d-flex flex-wrap justify-content-between align-items-center"
-                  >
-                    <h5 class="mb-2 mb-md-0">Recent Doctors</h5>
-                    <a
-                      href="#"
-                      class="btn btn-sm btn-outline-primary"
-                      onclick="showSection('doctors')"
-                      >View All</a
-                    >
-                  </div>
-                  <div class="card-body">
-                    {% if all_doctors %}
-                    <div class="mobile-table-container">
-                      <table class="table table-hover mb-0 mobile-table text-nowrap">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Specialization</th>
-                            <th>Experience</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for doctor in all_doctors|slice:":5" %}
-                          <tr>
-                            <td>
-                              <div class="d-flex align-items-center">
-                                {% if doctor.photo %}
-                                <img
-                                  src="{{ doctor.photo.url }}"
-                                  class="user-avatar me-2"
-                                  alt="Doctor Photo"
-                                />
-                                {% else %}
-                                <img
-                                  src="https://ui-avatars.com/api/?name={{ doctor.full_name|urlencode }}&background=0cb76b&color=fff"
-                                  class="user-avatar me-2"
-                                  alt="Doctor Avatar"
-                                />
-                                {% endif %}
-                                <div>{{ doctor.full_name }}</div>
-                              </div>
-                            </td>
-                            <td>{{ doctor.specialization }}</td>
-                            <td>{{ doctor.experience }} years</td>
-                            <td><span class="badge bg-success">Available</span></td>
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
-                    {% else %}
-                    <p class="text-center text-muted my-3">No doctors found.</p>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
+        <!-- =================== DASHBOARD HOME =================== -->
+        <div id="home" class="content-section active">
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>Dashboard Overview</h2>
+              <p>Welcome back, Admin — here's what's happening today</p>
             </div>
           </div>
 
-          <!-- Register Patient -->
-          <div id="register-patient" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">Register New Patient</h2>
+          <div class="stats-grid">
+            <div class="stat-card" style="--accent:#0cb76b;">
+              <div class="stat-icon" style="--icon-bg:#e6f9f1;--icon-color:#0cb76b;"><i class="bi bi-people"></i></div>
+              <div class="stat-label">Total Patients</div>
+              <div class="stat-value">{{ total_patients }}</div>
+              <div class="stat-sub">Registered patients</div>
             </div>
-            <div class="row justify-content-center">
-              <div class="col-12">
-                <div class="card form-card">
-                  <div class="card-header">
-                    <h5 class="mb-0">Patient Information</h5>
-                  </div>
-                  <div class="card-body">
-                    <form method="POST" action="{% url 'patient_register' %}">
-                      {% csrf_token %}
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Full Name *</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="full_name"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-3 mb-3">
-                          <label class="form-label">Age *</label>
-                          <input
-                            type="number"
-                            class="form-control"
-                            name="age"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-3 mb-3">
-                          <label class="form-label">Gender *</label>
-                          <select class="form-select" name="gender" required>
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Email *</label>
-                          <input
-                            type="email"
-                            class="form-control"
-                            name="email"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Phone *</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="phone"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea
-                          class="form-control"
-                          name="address"
-                          rows="3"
-                        ></textarea>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Current Condition</label>
-                        <textarea
-                          class="form-control"
-                          name="disease"
-                          rows="2"
-                        ></textarea>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Doctor Assigned</label>
-                        <input
-                          type="text"
-                          class="form-control"
-                          name="doctor_assigned"
-                          placeholder="Enter doctor's name manually"
-                        />
-                        <small class="text-muted"
-                          >You can type any doctor's name here, it doesn't have
-                          to be from the registered doctors list</small
-                        >
-                      </div>
-                      <div class="d-grid">
-                        <button type="submit" class="btn btn-success btn-lg">
-                          Register Patient
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
+            <div class="stat-card" style="--accent:#2b5ce6;">
+              <div class="stat-icon" style="--icon-bg:#e8f0fe;--icon-color:#2b5ce6;"><i class="bi bi-person-badge"></i>
               </div>
+              <div class="stat-label">Total Doctors</div>
+              <div class="stat-value">{{ total_doctors }}</div>
+              <div class="stat-sub">Registered doctors</div>
+            </div>
+            <div class="stat-card" style="--accent:#b07900;">
+
+              <div class="stat-icon" style="--icon-bg:#fff8e6;--icon-color:#b07900;">
+                <i class="bi bi-calendar-check"></i>
+              </div>
+
+              <div class="stat-label">Appointments</div>
+
+              <!-- MAIN VALUE -->
+              <div class="stat-value">{{ total_appointments }}</div>
+
+              <!-- 🔥 NEW SUB INFO -->
+              <div class="stat-sub">
+                {{ total_requests }} Requests • {{ total_appointments }} Confirmed
+              </div>
+
             </div>
           </div>
 
-          <!-- Register Doctor -->
-          <div id="register-doctor" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">Register New Doctor</h2>
-            </div>
-            <div class="row justify-content-center">
-              <div class="col-12">
-                <div class="card form-card">
-                  <div class="card-header">
-                    <h5 class="mb-0">Doctor Information</h5>
-                  </div>
-                  <div class="card-body">
-                    <form
-                      method="POST"
-                      action="{% url 'doctor_register' %}"
-                      enctype="multipart/form-data"
-                    >
-                      {% csrf_token %}
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Full Name *</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="full_name"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Specialization *</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="specialization"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Email *</label>
-                          <input
-                            type="email"
-                            class="form-control"
-                            name="email"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Phone *</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="phone"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Experience (Years) *</label>
-                          <input
-                            type="number"
-                            class="form-control"
-                            name="experience"
-                            required
-                          />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                          <label class="form-label">Photo</label>
-                          <input
-                            type="file"
-                            class="form-control"
-                            name="photo"
-                            accept="image/*"
-                          />
-                        </div>
-                      </div>
-                      <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                          Register Doctor
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- All Patients Section -->
-          <div id="patients" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">All Patients</h2>
-              <div>
-                <button
-                  class="btn btn-success"
-                  onclick="showSection('register-patient')"
-                >
-                  <i class="bi bi-person-plus me-2"></i> Add New Patient
-                </button>
-              </div>
-            </div>
-            <div class="card">
-              <div
-                class="card-header d-md-flex justify-content-between align-items-center mobile-card-header"
-              >
-                <h5 class="mb-0">Patient Records</h5>
-                <div class="d-flex mt-2 mt-md-0">
-                  <input
-                    type="text"
-                    class="form-control me-2"
-                    placeholder="Search patients..."
-                    id="patientSearch"
-                  />
-                  <button class="btn btn-outline-primary">
-                    <i class="bi bi-filter"></i> Filter
+          <div class="row g-4">
+            <div class="col-12 col-lg-6">
+              <div class="panel">
+                <div class="panel-header">
+                  <h5><i class="bi bi-people"></i> Recent Patients</h5>
+                  <button class="topbar-btn" style="font-size:0.8rem;padding:0.4rem 0.85rem;"
+                    onclick="showSection('patients', null)">
+                    View All <i class="bi bi-arrow-right"></i>
                   </button>
                 </div>
-              </div>
-              <div class="card-body">
                 {% if all_patients %}
-                <div class="mobile-table-container">
-                  <table class="table table-hover mobile-table">
+                <div style="overflow-x:auto;">
+                  <table class="data-table">
                     <thead>
                       <tr>
-                        <th>#</th>
-                        <th>Full Name</th>
-                        <th>Email</th>
+                        <th>Name</th>
                         <th>Age</th>
-                        <th>Gender</th>
-                        <th>Phone</th>
                         <th>Condition</th>
-                        <th>Doctor Assigned</th>
-                        <!-- 🧩 New column for QR Code -->
-                        <th>QR Code</th>
-                        <th>Action</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for patient in all_patients %}
+                      {% for patient in all_patients|slice:":5" %}
                       <tr>
-                        <td>{{ forloop.counter }}</td>
                         <td>
-                          <div class="d-flex align-items-center">
+                          <div style="display:flex;align-items:center;gap:10px;">
                             <img
                               src="https://ui-avatars.com/api/?name={{ patient.full_name|urlencode }}&background=0cb76b&color=fff"
-                              class="user-avatar me-2"
-                            />
-                            <div>{{ patient.full_name }}</div>
+                              class="user-avatar" alt="Avatar" />
+                            <span style="font-weight:600;color:#1a2332;">{{ patient.full_name }}</span>
                           </div>
                         </td>
-                        <td>{{ patient.email }}</td>
                         <td>{{ patient.age }}</td>
-                        <td>{{ patient.gender }}</td>
-                        <td>{{ patient.phone }}</td>
-                        <td>{{ patient.disease|default:"Not specified" }}</td>
-                        <td>
-                          {{ patient.doctor_assigned|default:"Not assigned" }}
-                        </td>
-
-                        <!-- 🧩 Show QR Code if available -->
-                        <td>
-                          {% if patient.qr_code %}
-                          <div class="text-center">
-                            <img
-                              src="{{ patient.qr_code.url }}"
-                              alt="QR"
-                              width="80"
-                              height="80"
-                              class="rounded border mobile-qr mb-2"
-                            />
-
-                            <!-- Blockchain Hash -->
-                            <div>
-                              <small class="text-muted d-block">
-                                <strong>Hash:</strong>
-                                {{ patient.blockchain_hash|truncatechars:12 }}
-                              </small>
-                            </div>
-
-                            <!-- Transaction Hash (if exists) -->
-                            {% if patient.tx_hash %}
-                            <div class="mt-1">
-                              <small class="text-muted">
-                                TX: {{ patient.tx_hash|truncatechars:15 }}
-                              </small>
-
-                              <button
-                                class="btn btn-sm btn-outline-secondary mt-1"
-                                onclick="copyTx('{{ patient.id }}')"
-                              >
-                                <i class="bi bi-clipboard"></i> Copy TX
-                              </button>
-                            </div>
-                            {% else %}
-                            <small class="text-muted d-block mt-1"
-                              >No TX available</small
-                            >
-                            {% endif %}
-                          </div>
-                          {% else %}
-                          <span class="text-muted">No QR</span>
-                          {% endif %}
-                        </td>
-
-                        <td class="mobile-actions">
-                          <a
-                            href="{% url 'edit_patient' patient.id %}"
-                            class="btn btn-sm btn-outline-success"
-                            ><i class="bi bi-pencil"></i
-                          ></a>
-                          <a
-                            href="{% url 'delete_patient' patient.id %}"
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Are you sure you want to delete this patient?')"
-                            ><i class="bi bi-trash"></i
-                          ></a>
-                          <a
-                            href="{% url 'patient_history' patient.id %}?from=admin"
-                            class="btn btn-sm btn-outline-info"
-                          >
-                            <i class="bi bi-clock-history"></i>
-                          </a>
-                        </td>
+                        <td>{{ patient.disease|default:"Not specified"|truncatewords:3 }}</td>
+                        <td><span class="badge-pill badge-success">Active</span></td>
                       </tr>
                       {% endfor %}
                     </tbody>
                   </table>
                 </div>
                 {% else %}
-                <p class="text-center text-muted my-4">No patients found.</p>
+                <div class="empty-state"><i class="bi bi-people"></i>
+                  <p>No patients found.</p>
+                </div>
                 {% endif %}
               </div>
             </div>
-          </div>
 
-          <!-- All Doctors Section -->
-          <div id="doctors" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">All Doctors</h2>
-              <div>
-                <button
-                  class="btn btn-primary"
-                  onclick="showSection('register-doctor')"
-                >
-                  <i class="bi bi-person-badge me-2"></i> Add New Doctor
-                </button>
-              </div>
-            </div>
-            <div class="card">
-              <div
-                class="card-header d-md-flex justify-content-between align-items-center mobile-card-header"
-              >
-                <h5 class="mb-0">Doctor Records</h5>
-                <div class="d-flex mt-2 mt-md-0">
-                  <input
-                    type="text"
-                    class="form-control me-2"
-                    placeholder="Search doctors..."
-                    id="doctorSearch"
-                  />
-                  <button class="btn btn-outline-primary">
-                    <i class="bi bi-filter"></i> Filter
+            <div class="col-12 col-lg-6">
+              <div class="panel">
+                <div class="panel-header">
+                  <h5><i class="bi bi-person-badge"></i> Recent Doctors</h5>
+                  <button class="topbar-btn" style="font-size:0.8rem;padding:0.4rem 0.85rem;"
+                    onclick="showSection('doctors', null)">
+                    View All <i class="bi bi-arrow-right"></i>
                   </button>
                 </div>
-              </div>
-              <div class="card-body">
                 {% if all_doctors %}
-                <div class="mobile-table-container">
-                  <table class="table table-hover mobile-table">
+                <div style="overflow-x:auto;">
+                  <table class="data-table">
                     <thead>
                       <tr>
-                        <th>#</th>
                         <th>Name</th>
-                        <th>Email</th>
                         <th>Specialization</th>
                         <th>Experience</th>
-                        <th>Phone</th>
-                        <th>Photo</th>
-                        <th>Action</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for doctor in all_doctors %}
+                      {% for doctor in all_doctors|slice:":5" %}
                       <tr>
-                        <td>{{ forloop.counter }}</td>
                         <td>
-                          <div class="d-flex align-items-center">
+                          <div style="display:flex;align-items:center;gap:10px;">
                             {% if doctor.photo %}
-                            <img
-                              src="{{ doctor.photo.url }}"
-                              class="user-avatar me-2"
-                            />
+                            <img src="{{ doctor.photo.url }}" class="user-avatar" alt="Doctor Photo" />
                             {% else %}
                             <img
                               src="https://ui-avatars.com/api/?name={{ doctor.full_name|urlencode }}&background=0cb76b&color=fff"
-                              class="user-avatar me-2"
-                            />
+                              class="user-avatar" alt="Avatar" />
                             {% endif %}
-                            <div>{{ doctor.full_name }}</div>
+                            <span style="font-weight:600;color:#1a2332;">{{ doctor.full_name }}</span>
                           </div>
                         </td>
-                        <td>{{ doctor.email }}</td>
                         <td>{{ doctor.specialization }}</td>
-                        <td>{{ doctor.experience }} years</td>
-                        <td>{{ doctor.phone }}</td>
-                        <td>
-                          {% if doctor.photo %}
-                          <img
-                            src="{{ doctor.photo.url }}"
-                            class="user-avatar"
-                          />
-                          {% else %}
-                          <span class="text-muted">No photo</span>
-                          {% endif %}
-                        </td>
-                        <td class="mobile-actions">
-                          <a
-                            href="{% url 'edit_doctor' doctor.id %}"
-                            class="btn btn-sm btn-outline-success"
-                            ><i class="bi bi-pencil"></i
-                          ></a>
-                          <a
-                            href="{% url 'delete_doctor' doctor.id %}"
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Are you sure you want to delete this doctor?')"
-                            ><i class="bi bi-trash"></i
-                          ></a>
-                        </td>
+                        <td>{{ doctor.experience }} yrs</td>
+                        <td><span class="badge-pill badge-success">Available</span></td>
                       </tr>
                       {% endfor %}
                     </tbody>
                   </table>
                 </div>
                 {% else %}
-                <p class="text-center text-muted my-4">No doctors found.</p>
+                <div class="empty-state"><i class="bi bi-person-badge"></i>
+                  <p>No doctors found.</p>
+                </div>
                 {% endif %}
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Appointments Section -->
-          <div id="appointments" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">All Appointments</h2>
-              <div>
-                <button class="btn btn-success">
-                  <i class="bi bi-plus-circle me-2"></i> Schedule Appointment
-                </button>
+        <!-- =================== REGISTER PATIENT =================== -->
+        <div id="register-patient" class="content-section">
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>Register New Patient</h2>
+              <p>Fill in the details to add a new patient record</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h5><i class="bi bi-person-plus"></i> Patient Information</h5>
+            </div>
+            <div class="panel-body">
+              <form method="POST" action="{% url 'patient_register' %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" name="full_name" required />
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Age *</label>
+                    <input type="number" class="form-control" name="age" required />
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Gender *</label>
+                    <select class="form-select" name="gender" required>
+                      <option value="">Select</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" name="email" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Phone *</label>
+                    <input type="text" class="form-control" name="phone" required />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-control" name="address" rows="3"></textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Current Condition</label>
+                    <textarea class="form-control" name="disease" rows="2"></textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Doctor Assigned</label>
+                    <input type="text" class="form-control" name="doctor_assigned"
+                      placeholder="Enter doctor's name manually" />
+                    <div class="form-text mt-1" style="color:#8896a5;">You can type any doctor's name here, it doesn't
+                      have to be from the registered doctors list</div>
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="topbar-btn btn-primary-filled"
+                      style="width:100%;justify-content:center;padding:0.75rem;">
+                      <i class="bi bi-person-check"></i> Register Patient
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== REGISTER DOCTOR =================== -->
+        <div id="register-doctor" class="content-section">
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>Register New Doctor</h2>
+              <p>Fill in the details to add a new doctor record</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h5><i class="bi bi-person-badge"></i> Doctor Information</h5>
+            </div>
+            <div class="panel-body">
+              <form method="POST" action="{% url 'doctor_register' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" class="form-control" name="full_name" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Specialization *</label>
+                    <input type="text" class="form-control" name="specialization" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-control" name="email" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Phone *</label>
+                    <input type="text" class="form-control" name="phone" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Experience (Years) *</label>
+                    <input type="number" class="form-control" name="experience" required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Photo</label>
+                    <input type="file" class="form-control" name="photo" accept="image/*" />
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="topbar-btn btn-primary-filled"
+                      style="width:100%;justify-content:center;padding:0.75rem;">
+                      <i class="bi bi-person-check"></i> Register Doctor
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== ALL PATIENTS =================== -->
+        <div id="patients" class="content-section">
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>All Patients</h2>
+              <p>Manage and view all registered patient records</p>
+            </div>
+            <div class="topbar-actions">
+              <button class="topbar-btn btn-primary-filled" onclick="showSection('register-patient', null)">
+                <i class="bi bi-person-plus"></i> Add New Patient
+              </button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h5><i class="bi bi-people"></i> Patient Records</h5>
+              <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" placeholder="Search patients..." id="patientSearch"
+                  style="padding-left:2.2rem;min-width:200px;" />
               </div>
             </div>
-            <div class="card">
-              <div
-                class="card-header d-md-flex justify-content-between align-items-center mobile-card-header"
-              >
-                <h5 class="mb-0">Appointment Records</h5>
-                <div class="d-flex mt-2 mt-md-0">
-                  <input
-                    type="text"
-                    class="form-control me-2"
-                    placeholder="Search appointments..."
-                    id="appointmentSearch"
-                  />
-                  <button class="btn btn-outline-primary">
-                    <i class="bi bi-filter"></i> Filter
-                  </button>
-                </div>
+            {% if all_patients %}
+            <div style="overflow-x:auto;">
+              <table class="data-table" id="patientTable">
+
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Condition</th>
+                    <th>Doctor</th>
+                    <th style="text-align:center;">QR / TX</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for patient in all_patients %}
+                  <tr>
+
+                    <td class="text-muted" style="font-size:0.8rem;">
+                      {{ forloop.counter }}
+                    </td>
+
+                    <!-- NAME -->
+                    <td>
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <img
+                          src="https://ui-avatars.com/api/?name={{ patient.full_name|urlencode }}&background=0cb76b&color=fff"
+                          class="user-avatar" />
+                        <div>
+                          <div style="font-weight:600;">{{ patient.full_name }}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- EMAIL -->
+                    <td style="font-size:0.82rem;">{{ patient.email }}</td>
+
+                    <td>{{ patient.age }}</td>
+                    <td>{{ patient.gender }}</td>
+
+                    <!-- CONDITION -->
+                    <td>
+                      <span class="badge-pill badge-info">
+                        {{ patient.disease|default:"Not specified" }}
+                      </span>
+                    </td>
+
+                    <!-- DOCTOR -->
+                    <td style="font-weight:500;">
+                      {{ patient.doctor_assigned|default:"Not assigned" }}
+                    </td>
+
+                    <!-- QR SECTION -->
+                    <td style="text-align:center;">
+
+                      {% if patient.qr_code %}
+                      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+
+                        <!-- SMALL QR -->
+                        <img src="{{ patient.qr_code.url }}"
+                          style="width:48px;height:48px;border-radius:6px;border:1px solid #edf2f7;" />
+
+                        <!-- HASH (VERY SMALL) -->
+                        <div style="font-size:0.6rem;color:#8896a5;line-height:1;">
+                          {{ patient.blockchain_hash|default:"-"|truncatechars:10 }}
+                        </div>
+
+                        <!-- TX -->
+                        <div style="font-size:0.6rem;color:#8896a5;line-height:1;">
+                          {{ patient.tx_hash|default:"-"|truncatechars:10 }}
+                        </div>
+
+                        <!-- SMALL BUTTON -->
+                        {% if patient.tx_hash %}
+                        <button class="copy-btn" style="font-size:0.6rem;padding:2px 6px;margin-top:2px;"
+                          onclick="copyTx('{{ patient.tx_hash }}')">
+                          Copy
+                        </button>
+                        {% endif %}
+
+                      </div>
+
+                      {% else %}
+                      <span style="font-size:0.75rem;color:#8896a5;">No QR</span>
+                      {% endif %}
+
+                    </td>
+                    <!-- ACTIONS -->
+                    <td>
+                      <div style="display:flex;gap:5px;">
+                        <a href="{% url 'edit_patient' patient.id %}" class="topbar-btn"
+                          style="padding:4px 6px;font-size:0.75rem;">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <a href="{% url 'delete_patient' patient.id %}" class="topbar-btn"
+                          style="padding:4px 6px;font-size:0.75rem;" onclick="return confirm('Delete this patient?')">
+                          <i class="bi bi-trash"></i>
+                        </a>
+
+                        <a href="{% url 'patient_history' patient.id %}?from=admin" class="topbar-btn"
+                          style="padding:5px;">
+                          <i class="bi bi-clock-history"></i>
+                        </a>
+                      </div>
+                    </td>
+
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+              </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="bi bi-people"></i>
+              <p>No patients found. Add your first patient to get started.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- =================== ALL DOCTORS =================== -->
+        <div id="doctors" class="content-section">
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>All Doctors</h2>
+              <p>Manage and view all registered doctor profiles</p>
+            </div>
+            <div class="topbar-actions">
+              <button class="topbar-btn btn-primary-filled" onclick="showSection('register-doctor', null)">
+                <i class="bi bi-person-badge"></i> Add New Doctor
+              </button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h5><i class="bi bi-person-badge"></i> Doctor Records</h5>
+              <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" placeholder="Search doctors..." id="doctorSearch"
+                  style="padding-left:2.2rem;min-width:200px;" />
               </div>
-              <div class="card-body">
-                {% if all_appointments %}
-                <div class="mobile-table-container">
-                  <table class="table table-hover mobile-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for appointment in all_appointments %}
-                      <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ appointment.patient_name }}</td>
-                        <td>{{ appointment.doctor_name }}</td>
-                        <td>{{ appointment.date }}</td>
-                        <td>{{ appointment.time }}</td>
-                        <td>
-                          {% if appointment.status == 'Scheduled' %}
-                          <span class="badge bg-warning">Scheduled</span>
-                          {% elif appointment.status == 'Completed' %}
-                          <span class="badge bg-success">Completed</span>
-                          {% else %}
-                          <span class="badge bg-danger">Cancelled</span>
-                          {% endif %}
-                        </td>
-                        <td class="mobile-actions">
-                          {% if appointment.status == 'Scheduled' %}
-                          <a
-                            href="{% url 'approve_appointment' appointment.id %}"
-                            class="btn btn-sm btn-outline-success"
-                            title="Approve"
-                            ><i class="bi bi-check-lg"></i
-                          ></a>
-                          <a
-                            href="{% url 'reject_appointment' appointment.id %}"
-                            class="btn btn-sm btn-outline-danger"
-                            title="Reject"
-                            ><i class="bi bi-x-lg"></i
-                          ></a>
-                          {% endif %}
-                        </td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-                {% else %}
-                <p class="text-center text-muted my-4">
-                  No appointments found.
-                </p>
-                {% endif %}
-              </div>
+            </div>
+            {% if all_doctors %}
+            <div style="overflow-x:auto;">
+              <table class="data-table" id="doctorTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Specialization</th>
+                    <th>Experience</th>
+                    <th>Phone</th>
+                    <th>Photo</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for doctor in all_doctors %}
+                  <tr>
+                    <td style="color:#8896a5;font-size:0.8rem;">{{ forloop.counter }}</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        {% if doctor.photo %}
+                        <img src="{{ doctor.photo.url }}" class="user-avatar" />
+                        {% else %}
+                        <img
+                          src="https://ui-avatars.com/api/?name={{ doctor.full_name|urlencode }}&background=0cb76b&color=fff"
+                          class="user-avatar" />
+                        {% endif %}
+                        <span style="font-weight:600;color:#1a2332;">{{ doctor.full_name }}</span>
+                      </div>
+                    </td>
+                    <td>{{ doctor.email }}</td>
+                    <td>{{ doctor.specialization }}</td>
+                    <td>{{ doctor.experience }} years</td>
+                    <td>{{ doctor.phone }}</td>
+                    <td>
+                      {% if doctor.photo %}
+                      <img src="{{ doctor.photo.url }}" class="user-avatar" />
+                      {% else %}
+                      <span style="color:#cbd5e0;font-size:0.82rem;">No photo</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <div style="display:flex;gap:3px;">
+                        <a href="{% url 'edit_doctor' doctor.id %}" class="action-btn edit" title="Edit"><i
+                            class="bi bi-pencil"></i></a>
+                        <a href="{% url 'delete_doctor' doctor.id %}" class="action-btn delete" title="Delete"
+                          onclick="return confirm('Are you sure you want to delete this doctor?')"><i
+                            class="bi bi-trash"></i></a>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="empty-state"><i class="bi bi-person-badge"></i>
+              <p>No doctors found. Register your first doctor to get started.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- =================== APPOINTMENTS =================== -->
+        <div id="appointments" class="content-section">
+
+          <!-- TOPBAR -->
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>Doctor Requests Status</h2>
+              <p>View patient requests and doctor response status</p>
             </div>
           </div>
 
-          <!-- Reports Section -->
-          <div id="reports" class="content-section">
-            <div class="page-header">
-              <h2 class="mb-0">Reports & Statistics</h2>
-              <div>
-                <button class="btn btn-success">
-                  <i class="bi bi-download me-2"></i> Export Report
-                </button>
-              </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h5><i class="bi bi-activity"></i> Request Records</h5>
+
             </div>
-            <div class="row g-4 mb-4">
-              <div class="col-md-3">
-                <div class="stats-card text-center">
-                  <div class="card-icon">
-                    <i class="bi bi-people"></i>
-                  </div>
-                  <h3>Total Patients</h3>
-                  <h2>{{ total_patients }}</h2>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="stats-card text-center">
-                  <div class="card-icon">
-                    <i class="bi bi-person-badge"></i>
-                  </div>
-                  <h3>Total Doctors</h3>
-                  <h2>{{ total_doctors }}</h2>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="stats-card text-center">
-                  <div class="card-icon">
-                    <i class="bi bi-calendar-check"></i>
-                  </div>
-                  <h3>Appointments</h3>
-                  <h2>{{ total_appointments }}</h2>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="stats-card text-center">
-                  <div class="card-icon">
-                    <i class="bi bi-cash-coin"></i>
-                  </div>
-                  <h3>Revenue</h3>
-                  <h2>$42,580</h2>
-                </div>
-              </div>
+
+            {% if all_requests %}
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Status</th>
+                    <th>Requested On</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for req in all_requests %}
+                  <tr>
+                    <td style="color:#8896a5;font-size:0.8rem;">
+                      {{ forloop.counter }}
+                    </td>
+
+                    <td style="font-weight:600;color:#1a2332;">
+                      {{ req.patient.full_name }}
+                    </td>
+
+                    <td>
+                      {{ req.doctor.full_name }}
+                    </td>
+
+                    <!-- STATUS -->
+                    <td>
+                      {% if req.status == 'Pending' %}
+                      <span class="badge-pill badge-warning">Pending</span>
+
+                      {% elif req.status == 'Accepted' %}
+                      <span class="badge-pill badge-success">Accepted</span>
+
+                      {% else %}
+                      <span class="badge-pill badge-danger">Rejected</span>
+                      {% endif %}
+                    </td>
+
+                    <td style="color:#8896a5;">
+                      {{ req.created_at|date:"d M Y, h:i A" }}
+                    </td>
+
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+              <i class="bi bi-inbox"></i>
+              <p>No requests found.</p>
+            </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- =================== REPORTS =================== -->
+        <div id="reports" class="content-section">
+
+          <!-- TOPBAR -->
+          <div class="topbar">
+            <div class="topbar-title">
+              <h2>Reports & Statistics</h2>
+              <p>Overview of system performance and analytics</p>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- SweetAlert JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+          <!-- ================= STAT CARDS ================= -->
+          <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
 
-    <script>
-      function showSection(sectionId) {
-        // Update active nav link
-        document.querySelectorAll(".nav-link").forEach((link) => {
-          link.classList.remove("active");
-        });
-        event.currentTarget.classList.add("active");
+            <div class="stat-card" style="--accent:#0cb76b;">
+              <div class="stat-icon" style="--icon-bg:#e6f9f1;--icon-color:#0cb76b;">
+                <i class="bi bi-people"></i>
+              </div>
+              <div class="stat-label">Patients</div>
+              <div class="stat-value">{{ total_patients }}</div>
+            </div>
 
-        // Show selected section
-        document.querySelectorAll(".content-section").forEach((section) => {
-          section.classList.remove("active");
-        });
-        document.getElementById(sectionId).classList.add("active");
+            <div class="stat-card" style="--accent:#2b5ce6;">
+              <div class="stat-icon" style="--icon-bg:#e8f0fe;--icon-color:#2b5ce6;">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="stat-label">Doctors</div>
+              <div class="stat-value">{{ total_doctors }}</div>
+            </div>
 
-        // Close sidebar on mobile after selection
-        if (window.innerWidth < 768) {
-          toggleSidebar();
-        }
+            <div class="stat-card" style="--accent:#7c3aed;">
+              <div class="stat-icon" style="--icon-bg:#f3e8ff;--icon-color:#7c3aed;">
+                <i class="bi bi-send"></i>
+              </div>
+              <div class="stat-label">Total Requests</div>
+              <div class="stat-value">{{ total_requests }}</div>
+            </div>
+
+            <div class="stat-card" style="--accent:#0ea5e9;">
+              <div class="stat-icon" style="--icon-bg:#e0f2fe;--icon-color:#0ea5e9;">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div class="stat-label">Accepted</div>
+              <div class="stat-value">{{ accepted_requests }}</div>
+            </div>
+
+            <div class="stat-card" style="--accent:#f59e0b;">
+              <div class="stat-icon" style="--icon-bg:#fff7ed;--icon-color:#f59e0b;">
+                <i class="bi bi-hourglass-split"></i>
+              </div>
+              <div class="stat-label">Pending</div>
+              <div class="stat-value">{{ pending_requests }}</div>
+            </div>
+
+          </div>
+
+          <!-- ================= CHART ================= -->
+          <div class="panel mt-4">
+            <div class="panel-header">
+              <h5><i class="bi bi-pie-chart"></i> Request Status Overview</h5>
+            </div>
+
+            <div style="max-width:400px;margin:auto;">
+              <canvas id="requestChart"></canvas>
+            </div>
+          </div>
+
+          <!-- ================= TOP DOCTORS ================= -->
+          <div class="panel mt-4">
+            <div class="panel-header">
+              <h5><i class="bi bi-person-lines-fill"></i> Top Doctors</h5>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Doctor</th>
+                  <th>Total Requests</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {% for doc in top_doctors %}
+                <tr>
+                  <td>{{ doc.doctor__full_name }}</td>
+                  <td>{{ doc.total }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ================= RECENT ACTIVITY ================= -->
+          <div class="panel mt-4">
+
+            <div class="panel-header">
+              <h5><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+
+            {% if recent_requests %}
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for req in recent_requests %}
+                  <tr>
+
+                    <td style="color:#8896a5;font-size:0.8rem;">
+                      {{ forloop.counter }}
+                    </td>
+
+                    <td style="font-weight:600;color:#1a2332;">
+                      {{ req.patient.full_name }}
+                    </td>
+
+                    <td>
+                      Dr. {{ req.doctor.full_name }}
+                    </td>
+
+                    <!-- STATUS BADGE -->
+                    <td>
+                      {% if req.status == 'Accepted' %}
+                      <span class="badge-pill badge-success">Accepted</span>
+                      {% else %}
+                      <span class="badge-pill badge-warning">Pending</span>
+                      {% endif %}
+                    </td>
+
+                    <td style="color:#8896a5;">
+                      {{ req.created_at|date:"d M Y, h:i A" }}
+                    </td>
+
+                  </tr>
+                  {% endfor %}
+                </tbody>
+
+              </table>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+              <i class="bi bi-clock"></i>
+              <p>No recent activity found.</p>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+      </div><!-- end main-inner -->
+    </div><!-- end main-content -->
+  </div><!-- end layout -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Shared JS -->
+  <script src="{% static 'assets/js/medicare_common.js' %}"></script>
+  <!-- Admin-specific JS -->
+  <script>
+    function copyTx(txHash) {
+      if (!txHash) {
+        alert("No TX available");
+        return;
       }
 
-      function toggleSidebar() {
-        const sidebar = document.getElementById("sidebarMenu");
-        sidebar.classList.toggle("show");
-      }
+      navigator.clipboard.writeText(txHash);
+      alert("Transaction hash copied!");
+    }
+    const ctx = document.getElementById('requestChart');
 
-      // Close sidebar when clicking outside on mobile
-      document.addEventListener("click", function (event) {
-        const sidebar = document.getElementById("sidebarMenu");
-        const menuBtn = document.querySelector(".mobile-menu-btn");
-
-        if (
-          window.innerWidth < 768 &&
-          !sidebar.contains(event.target) &&
-          !menuBtn.contains(event.target) &&
-          sidebar.classList.contains("show")
-        ) {
-          sidebar.classList.remove("show");
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Accepted', 'Pending'],
+        datasets: [{
+          data: [{{ accepted_requests }}, {{ pending_requests }}],
+      backgroundColor: ['#0cb76b', '#f59e0b']
+    }]
+  },
+      options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom'
         }
+      }
+    }
+});
+    document.getElementById("patientSearch").addEventListener("keyup", function () {
+      let input = this.value.toLowerCase();
+      let rows = document.querySelectorAll("#patientTable tbody tr");
+
+      rows.forEach(function (row) {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(input) ? "" : "none";
       });
+    });
 
-      // Auto-hide alerts after 5 seconds
-      document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(function () {
-          const alerts = document.querySelectorAll(".alert");
-          alerts.forEach(function (alert) {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-          });
-        }, 5000);
+    document.getElementById("doctorSearch").addEventListener("keyup", function () {
+      let input = this.value.toLowerCase();
+      let rows = document.querySelectorAll("#doctorTable tbody tr");
+
+      rows.forEach(function (row) {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(input) ? "" : "none";
       });
-      
-      function copyTx(patientId) {
-        const txElement = document.getElementById(`tx_${patientId}`);
-        if (txElement) {
-          navigator.clipboard.writeText(txElement.textContent.trim());
-          alert("✅ Transaction hash copied!");
-        } else {
-          alert("⚠️ No transaction hash found!");
-        }
-      }
-    </script>
-  </body>
+    });
+  </script>
+
+
+  {% if messages %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      {% for message in messages %}
+      Swal.fire({
+        title: "{{ message|escapejs }}",
+        icon: "{{ message.tags }}",
+        confirmButtonText: "OK"
+      });
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
+</body>
+
 </html>

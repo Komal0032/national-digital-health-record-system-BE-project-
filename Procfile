@@ -1,0 +1,1 @@
+web: gunicorn patient_health_records.wsgi:application
