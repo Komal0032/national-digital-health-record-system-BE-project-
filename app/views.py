@@ -13,38 +13,34 @@ import os
 from django.conf import settings
 import hashlib
 
-# 🧩 Web3 imports
-from web3 import Web3
+# 🧩 Web3 importsfrom web3 import Web3
 
-# ✅ Connect to Ganache
-ganache_url = "HTTP://127.0.0.1:7545"
-web3 = Web3(Web3.HTTPProvider(ganache_url))
+web3 = None
+contract = None
+account_address = None
+private_key = None
 
-# --------------------------------------
-# 🔍 CHECK GANACHE CONNECTION
-# --------------------------------------
-if web3.is_connected():
-    print("✔ Connected to Ganache RPC")
-else:
-    print("❌ ERROR: Ganache is NOT running!")
+def connect_blockchain():
+    global web3, contract, account_address, private_key
 
+    ganache_url = "http://127.0.0.1:7545"
+    web3 = Web3(Web3.HTTPProvider(ganache_url))
 
-# ✅ Your Account (from Ganache first address)
-account_address = "0x4A42ee9cC198a4aeCbc4bcF22c30dF430Af1F493"
-private_key = "0xe541b0428279425265c8dcfb3e41cda7f3145b2eacaba33a975bae8a6932534b"  # ⚠️ Replace this safely!
+    if not web3.is_connected():
+        print("Blockchain unavailable.")
+        return False
 
-# --------------------------------------
-# 🔍 CHECK ACCOUNT BALANCE
-# --------------------------------------
-try:
-    balance = web3.eth.get_balance(account_address)
-    print("✔ Account found. Balance:", web3.from_wei(balance, "ether"), "ETH")
-except:
-    print("❌ ERROR: Account not found in Ganache! Use first Ganache account.")
+    account_address = "0x4A42ee9cC198a4aeCbc4bcF22c30dF430Af1F493"
+    private_key = "YOUR_PRIVATE_KEY"
 
+    contract_address = web3.to_checksum_address("0x8b00c6e241B44C99Eb3b074E7121aBfB19B85AB8")
 
-# ✅ Contract details
-contract_address = web3.to_checksum_address("0x8b00c6e241B44C99Eb3b074E7121aBfB19B85AB8")
+    contract = web3.eth.contract(
+        address=contract_address,
+        abi=contract_abi
+    )
+
+    return True
 
 # --------------------------------------
 # 🔍 CHECK CONTRACT IS DEPLOYED
