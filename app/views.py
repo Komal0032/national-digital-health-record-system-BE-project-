@@ -14,7 +14,136 @@ from django.conf import settings
 import hashlib
 
 # 🧩 Web3 importsfrom web3 import Web3
+# ==============================
+# Web3 / Blockchain Configuration
+# ==============================
 
+from web3 import Web3
+
+# Ganache configuration
+GANACHE_URL = "http://127.0.0.1:7545"
+
+ACCOUNT_ADDRESS = "0x4A42ee9cC198a4aeCbc4bcF22c30dF430Af1F493"
+PRIVATE_KEY = "YOUR_PRIVATE_KEY"
+
+CONTRACT_ADDRESS = "0x8b00c6e241B44C99Eb3b074E7121aBfB19B85AB8"
+
+# ==============================
+# Contract ABI
+# ==============================
+
+contract_abi = [
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "patientId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "hashValue",
+                "type": "string"
+            }
+        ],
+        "name": "addRecord",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "patientId",
+                "type": "uint256"
+            }
+        ],
+        "name": "getRecords",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "patientId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "hashValue",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "timestamp",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct PatientRecords.Record[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]
+
+# ==============================
+# Global Variables
+# ==============================
+
+web3 = None
+contract = None
+account_address = None
+private_key = None
+
+# ==============================
+# Connect to Blockchain
+# ==============================
+
+def connect_blockchain():
+    global web3, contract, account_address, private_key
+
+    web3 = Web3(Web3.HTTPProvider(GANACHE_URL))
+
+    if not web3.is_connected():
+        print("⚠ Blockchain unavailable. Running without Ganache.")
+        return False
+
+    print("✔ Connected to Ganache")
+
+    account_address = ACCOUNT_ADDRESS
+    private_key = PRIVATE_KEY
+
+    contract = web3.eth.contract(
+        address=web3.to_checksum_address(CONTRACT_ADDRESS),
+        abi=contract_abi
+    )
+
+    try:
+        balance = web3.eth.get_balance(account_address)
+        print("✔ Account Balance:", web3.from_wei(balance, "ether"), "ETH")
+
+        code = web3.eth.get_code(web3.to_checksum_address(CONTRACT_ADDRESS))
+
+        if code == b'':
+            print("⚠ Contract not deployed.")
+            contract = None
+            return False
+
+        print("✔ Smart Contract Loaded")
+
+    except Exception as e:
+        print("Blockchain Error:", e)
+        contract = None
+        return False
+
+    return True
+
+
+# Automatically connect when Django starts
+BLOCKCHAIN_ENABLED = connect_blockchain()
 web3 = None
 contract = None
 account_address = None
